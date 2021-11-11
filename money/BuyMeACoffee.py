@@ -46,12 +46,12 @@ class BuyMeACoffee:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+                # If the account exists
+                if r.status_code == 200:
+                    buymeacoffee_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to buymeacoffee")
+                self.log.error('Error al realizar la petición a buymeacoffee')
 
-            # If the account exists
-            if r.status_code == 200:
-                buymeacoffee_usernames["accounts"].append({"value": username})
             time.sleep(self.delay)
 
         return buymeacoffee_usernames

@@ -45,12 +45,12 @@ class DailyMotion:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+                # If the account exists
+                if r.status_code == 200:
+                    dailymotion_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to dailymotion")
+                self.log.error('Error al realizar la petición a dailymotion')
 
-            # If the account exists
-            if r.status_code == 200:
-                dailymotion_usernames["accounts"].append({"value": username})
             time.sleep(self.delay)
 
         return dailymotion_usernames

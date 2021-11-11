@@ -46,12 +46,12 @@ class ZeroxZeroZeroSec:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+                # If the account exists
+                if r.status_code == 200:
+                    zeroxzerozerosec_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to 0x00sec.org")
+                self.log.error('Error al realizar la petición a 0x00sec.org')
 
-            # If the account exists
-            if r.status_code == 200:
-                zeroxzerozerosec_usernames["accounts"].append({"value": username})
             time.sleep(self.delay)
 
         return zeroxzerozerosec_usernames

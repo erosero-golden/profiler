@@ -49,12 +49,11 @@ class Skype:
             try:
                 skypli_formatted_URL = skypli_URL.format(username)
                 r = requests.get(skypli_formatted_URL)
+                # If the account exists
+                if r.status_code == 200:
+                    skype_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to skype")
-
-            # If the account exists
-            if r.status_code == 200:
-                skype_usernames["accounts"].append({"value": username})
+                self.log.error('Error al realizar la petición a skype')
 
             time.sleep(self.delay)
 

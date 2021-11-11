@@ -47,43 +47,47 @@ class Flickr:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+
+                # If the account exists
+                if r.status_code == 200:
+                    # Account object
+                    account = {}
+
+                    # Get the username
+                    account["value"] = username
+
+                    # Parse HTML response content with beautiful soup
+                    soup = BeautifulSoup(r.text, 'html.parser')
+
+                    # Scrape the user informations
+                    try:
+                        user_username = str(soup.find_all("div", {"class": "title"})[0].find_all("h1")[
+                                                0].get_text().strip()) if soup.find_all("div",
+                                                                                        {"class": "title"}) else None
+                        user_pictures_count = str(
+                            soup.find_all("p", {"class": "photo-count"})[0].get_text().split(' ')[0].replace(',',
+                                                                                                             '')) if soup.find_all(
+                            "p", {"class": "photo-count"}) else None
+
+                        followers = str(soup.find_all("p", {"class": "followers"})[0].get_text()) if soup.find_all("p",
+                                                                                                                   {
+                                                                                                                       "class": "followers"}) else None
+                        user_followers_count = followers.split(' ')[0]
+                        user_following_count = followers.split(' ')[1].split('•')[1]
+
+                        account["username"] = {"name": "Username", "value": user_username}
+                        account["following_count"] = {"name": "Following", "value": user_following_count}
+                        account["followers_count"] = {"name": "Followers", "value": user_followers_count}
+                        account["pictures_count"] = {"name": "Pictures", "value": user_pictures_count}
+
+                    except:
+                        self.log.error(f'Error en la búsqueda de publicaciones de {username} en flickr')
+
+                    # Append the account to the accounts table
+                    flickr_usernames["accounts"].append(account)
+
             except requests.ConnectionError:
-                print("failed to connect to flickr")
-
-            # If the account exists
-            if r.status_code == 200:
-                # Account object
-                account = {}
-
-                # Get the username
-                account["value"] = username
-
-                # Parse HTML response content with beautiful soup 
-                soup = BeautifulSoup(r.text, 'html.parser')
-
-                # Scrape the user informations
-                try:
-                    user_username = str(soup.find_all("div", {"class": "title"})[0].find_all("h1")[
-                                            0].get_text().strip()) if soup.find_all("div", {"class": "title"}) else None
-                    user_pictures_count = str(
-                        soup.find_all("p", {"class": "photo-count"})[0].get_text().split(' ')[0].replace(',',
-                                                                                                         '')) if soup.find_all(
-                        "p", {"class": "photo-count"}) else None
-
-                    followers = str(soup.find_all("p", {"class": "followers"})[0].get_text()) if soup.find_all("p", {
-                        "class": "followers"}) else None
-                    user_followers_count = followers.split(' ')[0]
-                    user_following_count = followers.split(' ')[1].split('•')[1]
-
-                    account["username"] = {"name": "Username", "value": user_username}
-                    account["following_count"] = {"name": "Following", "value": user_following_count}
-                    account["followers_count"] = {"name": "Followers", "value": user_followers_count}
-                    account["pictures_count"] = {"name": "Pictures", "value": user_pictures_count}
-                except:
-                    pass
-
-                # Append the account to the accounts table
-                flickr_usernames["accounts"].append(account)
+                self.log.error('Error al realizar la petición a flickr')
 
             time.sleep(self.delay)
 

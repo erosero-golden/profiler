@@ -46,12 +46,12 @@ class Pinterest:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+                # If the account exists
+                if r.status_code == 200:
+                    pinterest_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to pinterest")
+                self.log.error('Error al realizar la petición a pinterest')
 
-            # If the account exists
-            if r.status_code == 200:
-                pinterest_usernames["accounts"].append({"value": username})
             time.sleep(self.delay)
 
         return pinterest_usernames

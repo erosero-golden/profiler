@@ -47,12 +47,11 @@ class TikTok:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+                # If the account exists
+                if r.status_code == 200:
+                    tiktok_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to TikTok")
-
-            # If the account exists
-            if r.status_code == 200:
-                tiktok_usernames["accounts"].append({"value": username})
+                self.log.error('Error al realizar la petición a TikTok')
 
             time.sleep(self.delay)
 

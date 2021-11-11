@@ -47,38 +47,40 @@ class LinkTree:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+
+                # If the account exists
+                if r.status_code == 200:
+                    # Account object
+                    account = {}
+
+                    # Get the username
+                    account["value"] = username
+
+                    # Parse HTML response content with beautiful soup
+                    soup = BeautifulSoup(r.text, 'html.parser')
+
+                    # Scrape the user links
+                    try:
+                        user_services = []
+
+                        services = soup.find_all("div", {"data-testid": "StyledContainer"})
+
+                        for service in services[1:]:
+                            user_services.append({
+                                "service": str(service.get_text().strip()),
+                                "link": str(service.find_all('a', href=True)[0]['href'].strip())
+                            })
+
+                        account["user_services"] = {"name": "Services", "value": user_services}
+
+                    except:
+                        self.log.error(f'Error en la búsqueda de enlaces de {username} en linktree')
+
+                    # Append the account to the accounts table
+                    linktree_usernames["accounts"].append(account)
+
             except requests.ConnectionError:
-                print("failed to connect to linktree")
-
-            # If the account exists
-            if r.status_code == 200:
-                # Account object
-                account = {}
-
-                # Get the username
-                account["value"] = username
-
-                # Parse HTML response content with beautiful soup 
-                soup = BeautifulSoup(r.text, 'html.parser')
-
-                # Scrape the user links
-                try:
-                    user_services = []
-
-                    services = soup.find_all("div", {"data-testid": "StyledContainer"})
-
-                    for service in services[1:]:
-                        user_services.append({
-                            "service": str(service.get_text().strip()),
-                            "link": str(service.find_all('a', href=True)[0]['href'].strip())
-                        })
-
-                    account["user_services"] = {"name": "Services", "value": user_services}
-                except:
-                    pass
-
-                # Append the account to the accounts table
-                linktree_usernames["accounts"].append(account)
+                self.log.error('Error al realizar la petición a linktree')
 
             time.sleep(self.delay)
 

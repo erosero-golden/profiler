@@ -46,12 +46,12 @@ class Smule:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+                # If the account exists
+                if r.status_code == 200:
+                    smule_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to smule")
+                self.log.error('Error al realizar la petición a smule')
 
-            # If the account exists
-            if r.status_code == 200:
-                smule_usernames["accounts"].append({"value": username})
             time.sleep(self.delay)
 
         return smule_usernames

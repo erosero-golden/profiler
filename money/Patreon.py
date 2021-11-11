@@ -46,12 +46,12 @@ class Patreon:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+                # If the account exists
+                if r.status_code == 200:
+                    patreon_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to patreon")
+                self.log.error('Error al realizar la petición a patreon')
 
-            # If the account exists
-            if r.status_code == 200:
-                patreon_usernames["accounts"].append({"value": username})
             time.sleep(self.delay)
 
         return patreon_usernames

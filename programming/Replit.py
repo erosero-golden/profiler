@@ -45,12 +45,12 @@ class Replit:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+                # If the account exists
+                if r.status_code == 200:
+                    replit_usernames["accounts"].append({"value": username})
             except requests.ConnectionError:
-                print("failed to connect to replit")
+                self.log.error('Error al realizar la petición a replit')
 
-            # If the account exists
-            if r.status_code == 200:
-                replit_usernames["accounts"].append({"value": username})
             time.sleep(self.delay)
 
         return replit_usernames

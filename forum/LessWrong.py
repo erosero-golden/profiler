@@ -47,35 +47,36 @@ class LessWrong:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+
+                # If the account exists
+                if r.status_code == 200:
+                    # Account object
+                    account = {}
+
+                    # Get the username
+                    account["value"] = username
+
+                    # Parse HTML response content with beautiful soup
+                    soup = BeautifulSoup(r.text, 'html.parser')
+
+                    # Scrape the user informations
+                    try:
+                        user_username = str(
+                            soup.find_all(class_="UsersProfile-usernameTitle")[0].get_text()) if soup.find_all(
+                            class_="UsersProfile-usernameTitle") else None
+                        user_bio = str(soup.find_all(class_="UsersProfile-bio")[0].get_text()) if soup.find_all(
+                            class_="UsersProfile-bio") else None
+
+                        account["username"] = {"name": "Username", "value": user_username}
+                        account["bio"] = {"name": "Bio", "value": user_bio}
+                    except:
+                        self.log.error(f'Error en la búsqueda de información de {username} en lesswrong')
+
+                    # Append the account to the accounts table
+                    lesswrong_usernames["accounts"].append(account)
+
             except requests.ConnectionError:
-                print("failed to connect to lesswrong")
-
-            # If the account exists
-            if r.status_code == 200:
-                # Account object
-                account = {}
-
-                # Get the username
-                account["value"] = username
-
-                # Parse HTML response content with beautiful soup 
-                soup = BeautifulSoup(r.text, 'html.parser')
-
-                # Scrape the user informations
-                try:
-                    user_username = str(
-                        soup.find_all(class_="UsersProfile-usernameTitle")[0].get_text()) if soup.find_all(
-                        class_="UsersProfile-usernameTitle") else None
-                    user_bio = str(soup.find_all(class_="UsersProfile-bio")[0].get_text()) if soup.find_all(
-                        class_="UsersProfile-bio") else None
-
-                    account["username"] = {"name": "Username", "value": user_username}
-                    account["bio"] = {"name": "Bio", "value": user_bio}
-                except:
-                    pass
-
-                # Append the account to the accounts table
-                lesswrong_usernames["accounts"].append(account)
+                self.log.error('Error al realizar la petición a lesswrong')
 
             time.sleep(self.delay)
 

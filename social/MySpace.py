@@ -46,38 +46,42 @@ class MySpace:
         for username in possibleUsernames_list:
             try:
                 r = requests.get(username)
+
+                # If the account exists
+                if r.status_code == 200:
+                    # Account object
+                    account = {}
+
+                    # Get the username
+                    account["value"] = username
+
+                    # Parse HTML response content with beautiful soup
+                    soup = BeautifulSoup(r.text, 'html.parser')
+
+                    # Scrape the user informations
+                    try:
+                        user_following_count = str(
+                            soup.find_all("div", {"id": "connectionsCount"})[0].find_all("span")[0].get_text().replace(
+                                ",",
+                                "")) if soup.find_all(
+                            "div", {"id": "connectionsCount"}) else None
+                        user_followers_count = str(
+                            soup.find_all("div", {"id": "connectionsCount"})[0].find_all("span")[1].get_text().replace(
+                                ",",
+                                "")) if soup.find_all(
+                            "div", {"id": "connectionsCount"}) else None
+
+                        account["following_count"] = {"name": "Following", "value": user_following_count}
+                        account["followers_count"] = {"name": "Followers", "value": user_followers_count}
+
+                    except:
+                        self.log.error(f'Error en la búsqueda de información de {username} en myspace')
+
+                    # Append the account to the accounts table
+                    myspace_usernames["accounts"].append(account)
+
             except requests.ConnectionError:
-                print("failed to connect to myspace")
-
-            # If the account exists
-            if r.status_code == 200:
-                # Account object
-                account = {}
-
-                # Get the username
-                account["value"] = username
-
-                # Parse HTML response content with beautiful soup 
-                soup = BeautifulSoup(r.text, 'html.parser')
-
-                # Scrape the user informations
-                try:
-                    user_following_count = str(
-                        soup.find_all("div", {"id": "connectionsCount"})[0].find_all("span")[0].get_text().replace(",",
-                                                                                                                   "")) if soup.find_all(
-                        "div", {"id": "connectionsCount"}) else None
-                    user_followers_count = str(
-                        soup.find_all("div", {"id": "connectionsCount"})[0].find_all("span")[1].get_text().replace(",",
-                                                                                                                   "")) if soup.find_all(
-                        "div", {"id": "connectionsCount"}) else None
-
-                    account["following_count"] = {"name": "Following", "value": user_following_count}
-                    account["followers_count"] = {"name": "Followers", "value": user_followers_count}
-                except:
-                    pass
-
-                # Append the account to the accounts table
-                myspace_usernames["accounts"].append(account)
+                self.log.error('Error al realizar la petición a myspace')
 
             time.sleep(self.delay)
 
